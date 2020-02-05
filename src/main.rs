@@ -1,5 +1,6 @@
 use glfw::Context;
 use glfw::{Action, Key, OpenGlProfileHint, WindowHint, WindowMode};
+use std::mem;
 
 fn main() {
   let mut glfw = glfw::init(glfw::FAIL_ON_ERRORS).unwrap();
@@ -18,6 +19,19 @@ fn main() {
 
     window.set_framebuffer_size_polling(true);
     window.set_key_polling(true);
+
+    let vertices: Vec<f32> = vec![-0.5, 0.5, 0.0, 0.5, -0.5, 0.0, 0.0, 0.5, 0.0];
+    let mut vbo = 0;
+    unsafe {
+      gl::GenBuffers(1, &mut vbo);
+      gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
+      gl::BufferData(
+        gl::ARRAY_BUFFER,
+        (mem::size_of::<f32>() * vertices.len()) as isize,
+        vertices.as_ptr() as *const std::ffi::c_void,
+        gl::STATIC_DRAW,
+      );
+    }
 
     while !window.should_close() {
       glfw.poll_events();
