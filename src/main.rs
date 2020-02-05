@@ -48,7 +48,7 @@ void main() {
     )
     .unwrap();
 
-    unsafe {
+    let vs = unsafe {
       let vs_id = gl::CreateShader(gl::VERTEX_SHADER);
       gl::ShaderSource(vs_id, 1, &vs_code.as_c_str().as_ptr(), null());
       gl::CompileShader(vs_id);
@@ -64,7 +64,9 @@ void main() {
           String::from_utf8(log.into_iter().map(|x| *x as u8).collect()).unwrap()
         );
       }
-    }
+
+      vs_id
+    };
 
     // Fragment Shader
     let fs_code = CString::new(
@@ -79,7 +81,7 @@ void main() {
     )
     .unwrap();
 
-    unsafe {
+    let fs = unsafe {
       let fs_id = gl::CreateShader(gl::FRAGMENT_SHADER);
       gl::ShaderSource(fs_id, 1, &fs_code.as_c_str().as_ptr(), null());
       gl::CompileShader(fs_id);
@@ -95,8 +97,36 @@ void main() {
           String::from_utf8(log.into_iter().map(|x| *x as u8).collect()).unwrap()
         );
       }
-    }
 
+      fs_id
+    };
+
+    // Shader Program
+    let sp = unsafe {
+      let sp = gl::CreateProgram();
+      gl::AttachShader(sp, vs);
+      gl::AttachShader(sp, fs);
+      gl::LinkProgram(sp);
+
+      let mut success = 0;
+      let mut log = [0; 512];
+
+      gl::GetProgramiv(sp, gl::LINK_STATUS, &mut success);
+      if success as u8 != gl::TRUE {
+        gl::GetProgramInfoLog(sp, 512, null_mut(), log.as_mut_ptr());
+        panic!(
+          "Shader Program failed to link:\n{}",
+          String::from_utf8(log.into_iter().map(|x| *x as u8).collect()).unwrap()
+        );
+      }
+
+      gl::DeleteShader(vs);
+      gl::DeleteShader(fs);
+
+      sp
+    };
+
+    // Loop
     while !window.should_close() {
       glfw.poll_events();
       for (_, event) in glfw::flush_messages(&events) {
