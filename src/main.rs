@@ -66,6 +66,37 @@ void main() {
       }
     }
 
+    // Fragment Shader
+    let fs_code = CString::new(
+      "
+#version 460 core
+out vec4 FragColor;
+
+void main() {
+  FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
+}
+",
+    )
+    .unwrap();
+
+    unsafe {
+      let fs_id = gl::CreateShader(gl::FRAGMENT_SHADER);
+      gl::ShaderSource(fs_id, 1, &fs_code.as_c_str().as_ptr(), null());
+      gl::CompileShader(fs_id);
+
+      let mut success = 0;
+      let mut log = [0; 512];
+
+      gl::GetShaderiv(fs_id, gl::COMPILE_STATUS, &mut success);
+      if success as u8 != gl::TRUE {
+        gl::GetShaderInfoLog(fs_id, 512, null_mut(), log.as_mut_ptr());
+        panic!(
+          "Fragment Shader failed to compile:\n{}",
+          String::from_utf8(log.into_iter().map(|x| *x as u8).collect()).unwrap()
+        );
+      }
+    }
+
     while !window.should_close() {
       glfw.poll_events();
       for (_, event) in glfw::flush_messages(&events) {
