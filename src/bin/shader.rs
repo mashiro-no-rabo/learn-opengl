@@ -41,11 +41,8 @@ fn main() {
 #version 460 core
 layout (location=0) in vec3 aPos;
 
-out vec4 vertexColor;
-
 void main() {
   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
-  vertexColor = vec4(0.0, 0.8, 0.1, 1.0);
 }",
     )
     .unwrap();
@@ -76,10 +73,10 @@ void main() {
 #version 460 core
 out vec4 FragColor;
 
-in vec4 vertexColor;
+uniform vec4 uColor;
 
 void main() {
-  FragColor = vertexColor;
+  FragColor = uColor;
 }
 ",
     )
@@ -200,6 +197,13 @@ void main() {
         gl::Clear(gl::COLOR_BUFFER_BIT);
 
         gl::UseProgram(sp);
+
+        let time = glfw.get_time() as f32;
+        let green: f32 = time.sin() / 2.0 + 0.5;
+        let uc_name = CString::new("uColor").unwrap();
+        let uc_location = gl::GetUniformLocation(sp, uc_name.as_c_str().as_ptr());
+        gl::Uniform4f(uc_location, 0.0, green, 0.0, 1.0);
+
         gl::BindVertexArray(va_triangle);
         gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, 0 as *const c_void);
       }
