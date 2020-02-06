@@ -62,7 +62,7 @@ void main() {
     };
 
     // Fragment Shader
-    let fs_code = CString::new(
+    let fs_code1 = CString::new(
       "
 #version 460 core
 out vec4 FragColor;
@@ -74,9 +74,9 @@ void main() {
     )
     .unwrap();
 
-    let fs = unsafe {
+    let fs1 = unsafe {
       let fs_id = gl::CreateShader(gl::FRAGMENT_SHADER);
-      gl::ShaderSource(fs_id, 1, &fs_code.as_c_str().as_ptr(), null());
+      gl::ShaderSource(fs_id, 1, &fs_code1.as_c_str().as_ptr(), null());
       gl::CompileShader(fs_id);
 
       let mut success = 0;
@@ -86,7 +86,39 @@ void main() {
       if success as u8 != gl::TRUE {
         gl::GetShaderInfoLog(fs_id, 512, null_mut(), log.as_mut_ptr());
         panic!(
-          "Fragment Shader failed to compile:\n{}",
+          "Fragment Shader 1 failed to compile:\n{}",
+          String::from_utf8(log.into_iter().map(|x| *x as u8).collect()).unwrap()
+        );
+      }
+
+      fs_id
+    };
+
+    let fs_code2 = CString::new(
+      "
+#version 460 core
+out vec4 FragColor;
+
+void main() {
+  FragColor = vec4(0.99607f, 0.87450f, 88235f, 1.0f);
+}
+",
+    )
+    .unwrap();
+
+    let fs2 = unsafe {
+      let fs_id = gl::CreateShader(gl::FRAGMENT_SHADER);
+      gl::ShaderSource(fs_id, 1, &fs_code2.as_c_str().as_ptr(), null());
+      gl::CompileShader(fs_id);
+
+      let mut success = 0;
+      let mut log = [0; 512];
+
+      gl::GetShaderiv(fs_id, gl::COMPILE_STATUS, &mut success);
+      if success as u8 != gl::TRUE {
+        gl::GetShaderInfoLog(fs_id, 512, null_mut(), log.as_mut_ptr());
+        panic!(
+          "Fragment Shader 2 failed to compile:\n{}",
           String::from_utf8(log.into_iter().map(|x| *x as u8).collect()).unwrap()
         );
       }
@@ -95,10 +127,10 @@ void main() {
     };
 
     // Shader Program
-    let sp = unsafe {
+    let sp1 = unsafe {
       let sp = gl::CreateProgram();
       gl::AttachShader(sp, vs);
-      gl::AttachShader(sp, fs);
+      gl::AttachShader(sp, fs1);
       gl::LinkProgram(sp);
 
       let mut success = 0;
@@ -113,11 +145,35 @@ void main() {
         );
       }
 
-      gl::DeleteShader(vs);
-      gl::DeleteShader(fs);
+      sp
+    };
+
+    let sp2 = unsafe {
+      let sp = gl::CreateProgram();
+      gl::AttachShader(sp, vs);
+      gl::AttachShader(sp, fs2);
+      gl::LinkProgram(sp);
+
+      let mut success = 0;
+      let mut log = [0; 512];
+
+      gl::GetProgramiv(sp, gl::LINK_STATUS, &mut success);
+      if success as u8 != gl::TRUE {
+        gl::GetProgramInfoLog(sp, 512, null_mut(), log.as_mut_ptr());
+        panic!(
+          "Shader Program failed to link:\n{}",
+          String::from_utf8(log.into_iter().map(|x| *x as u8).collect()).unwrap()
+        );
+      }
 
       sp
     };
+
+    unsafe {
+      gl::DeleteShader(vs);
+      gl::DeleteShader(fs1);
+      gl::DeleteShader(fs2);
+    }
 
     // Triangle 1
     let t1 = unsafe {
@@ -216,10 +272,12 @@ void main() {
         gl::ClearColor(0.2, 0.3, 0.3, 1.0);
         gl::Clear(gl::COLOR_BUFFER_BIT);
 
-        gl::UseProgram(sp);
+        gl::UseProgram(sp1);
 
         gl::BindVertexArray(t1);
         gl::DrawArrays(gl::TRIANGLES, 0, 3);
+
+        gl::UseProgram(sp2);
 
         gl::BindVertexArray(t2);
         gl::DrawArrays(gl::TRIANGLES, 0, 3);
