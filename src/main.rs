@@ -5,6 +5,13 @@ use std::mem;
 use std::ptr::{null, null_mut};
 
 fn main() {
+  let mut wireframe_mode = false;
+  for arg in std::env::args() {
+    if &arg == "--wireframe" {
+      wireframe_mode = true;
+    }
+  }
+
   let mut glfw = glfw::init(glfw::FAIL_ON_ERRORS).unwrap();
   glfw.window_hint(WindowHint::ContextVersion(4, 6));
   glfw.window_hint(WindowHint::OpenGlProfile(OpenGlProfileHint::Core));
@@ -114,7 +121,9 @@ void main() {
 
     // Vertex Data
     let va_triangle = unsafe {
-      let vertices: Vec<f32> = vec![-0.5, -0.5, 0.0, 0.5, -0.5, 0.0, 0.0, 0.5, 0.0];
+      let vertices: Vec<f32> = vec![0.5, 0.5, 0.0, 0.5, -0.5, 0.0, -0.5, -0.5, 0.0, -0.5, 0.5, 0.0];
+      let indices = vec![0, 1, 3, 1, 2, 3];
+
       let mut vbo = 0;
       gl::GenBuffers(1, &mut vbo);
 
@@ -126,7 +135,7 @@ void main() {
       gl::BufferData(
         gl::ARRAY_BUFFER,
         (mem::size_of::<f32>() * vertices.len()) as isize,
-        vertices.as_ptr() as *const std::ffi::c_void,
+        vertices.as_ptr() as *const c_void,
         gl::STATIC_DRAW,
       );
 
@@ -140,8 +149,25 @@ void main() {
       );
       gl::EnableVertexAttribArray(0);
 
+      let mut ebo = 0;
+      gl::GenBuffers(1, &mut ebo);
+
+      gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ebo);
+      gl::BufferData(
+        gl::ELEMENT_ARRAY_BUFFER,
+        (mem::size_of::<f32>() * vertices.len()) as isize,
+        indices.as_ptr() as *const c_void,
+        gl::STATIC_DRAW,
+      );
+
       vao
     };
+
+    if wireframe_mode {
+      unsafe {
+        gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
+      }
+    }
 
     // Loop
     while !window.should_close() {
@@ -164,7 +190,7 @@ void main() {
 
         gl::UseProgram(sp);
         gl::BindVertexArray(va_triangle);
-        gl::DrawArrays(gl::TRIANGLES, 0, 3);
+        gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, 0 as *const c_void);
       }
 
       window.swap_buffers();
