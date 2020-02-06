@@ -1,6 +1,6 @@
 use glfw::Context;
 use glfw::{Action, Key, OpenGlProfileHint, WindowHint, WindowMode};
-use std::ffi::CString;
+use std::ffi::{c_void, CString};
 use std::mem;
 use std::ptr::{null, null_mut};
 
@@ -21,20 +21,6 @@ fn main() {
 
     window.set_framebuffer_size_polling(true);
     window.set_key_polling(true);
-
-    // Vertex Data
-    let vertices: Vec<f32> = vec![-0.5, 0.5, 0.0, 0.5, -0.5, 0.0, 0.0, 0.5, 0.0];
-    let mut vbo = 0;
-    unsafe {
-      gl::GenBuffers(1, &mut vbo);
-      gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
-      gl::BufferData(
-        gl::ARRAY_BUFFER,
-        (mem::size_of::<f32>() * vertices.len()) as isize,
-        vertices.as_ptr() as *const std::ffi::c_void,
-        gl::STATIC_DRAW,
-      );
-    }
 
     // Vertex Shader
     let vs_code = CString::new(
@@ -126,6 +112,37 @@ void main() {
       sp
     };
 
+    // Vertex Data
+    let va_triangle = unsafe {
+      let vertices: Vec<f32> = vec![-0.5, -0.5, 0.0, 0.5, -0.5, 0.0, 0.0, 0.5, 0.0];
+      let mut vbo = 0;
+      gl::GenBuffers(1, &mut vbo);
+
+      let mut vao = 0;
+      gl::GenVertexArrays(1, &mut vao);
+
+      gl::BindVertexArray(vao);
+      gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
+      gl::BufferData(
+        gl::ARRAY_BUFFER,
+        (mem::size_of::<f32>() * vertices.len()) as isize,
+        vertices.as_ptr() as *const std::ffi::c_void,
+        gl::STATIC_DRAW,
+      );
+
+      gl::VertexAttribPointer(
+        0,
+        3,
+        gl::FLOAT,
+        gl::FALSE,
+        3 * mem::size_of::<f32>() as i32,
+        0 as *const c_void,
+      );
+      gl::EnableVertexAttribArray(0);
+
+      vao
+    };
+
     // Loop
     while !window.should_close() {
       glfw.poll_events();
@@ -144,6 +161,10 @@ void main() {
       unsafe {
         gl::ClearColor(0.2, 0.3, 0.3, 1.0);
         gl::Clear(gl::COLOR_BUFFER_BIT);
+
+        gl::UseProgram(sp);
+        gl::BindVertexArray(va_triangle);
+        gl::DrawArrays(gl::TRIANGLES, 0, 3);
       }
 
       window.swap_buffers();
