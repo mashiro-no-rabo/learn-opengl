@@ -40,9 +40,13 @@ fn main() {
       "
 #version 460 core
 layout (location=0) in vec3 aPos;
+layout (location=1) in vec3 aColor;
+
+out vec3 vtxColor;
 
 void main() {
-  gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
+  gl_Position = vec4(aPos, 1.0);
+  vtxColor = aColor;
 }",
     )
     .unwrap();
@@ -72,11 +76,10 @@ void main() {
       "
 #version 460 core
 out vec4 FragColor;
-
-uniform vec4 uColor;
+in vec3 vtxColor;
 
 void main() {
-  FragColor = uColor;
+  FragColor = vec4(vtxColor, 1.0);
 }
 ",
     )
@@ -129,8 +132,10 @@ void main() {
 
     // Vertex Data
     let va_triangle = unsafe {
-      let vertices: Vec<f32> = vec![0.5, 0.5, 0.0, 0.5, -0.5, 0.0, -0.5, -0.5, 0.0, -0.5, 0.5, 0.0];
-      let indices = vec![0, 1, 3, 1, 2, 3];
+      let mut vertices: Vec<f32> = vec![];
+      vertices.append(&mut vec![0.5, -0.5, 0.0, 1.0, 0.0, 0.0]);
+      vertices.append(&mut vec![-0.5, -0.5, 0.0, 0.0, 1.0, 0.0]);
+      vertices.append(&mut vec![0.0, 0.5, 0.0, 0.0, 0.0, 1.0]);
 
       let mut vbo = 0;
       gl::GenBuffers(1, &mut vbo);
@@ -152,21 +157,20 @@ void main() {
         3,
         gl::FLOAT,
         gl::FALSE,
-        3 * mem::size_of::<f32>() as i32,
+        6 * mem::size_of::<f32>() as i32,
         0 as *const c_void,
       );
       gl::EnableVertexAttribArray(0);
 
-      let mut ebo = 0;
-      gl::GenBuffers(1, &mut ebo);
-
-      gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ebo);
-      gl::BufferData(
-        gl::ELEMENT_ARRAY_BUFFER,
-        (mem::size_of::<f32>() * vertices.len()) as isize,
-        indices.as_ptr() as *const c_void,
-        gl::STATIC_DRAW,
+      gl::VertexAttribPointer(
+        1,
+        3,
+        gl::FLOAT,
+        gl::FALSE,
+        6 * mem::size_of::<f32>() as i32,
+        (3 * mem::size_of::<f32>()) as *const c_void,
       );
+      gl::EnableVertexAttribArray(1);
 
       vao
     };
@@ -198,14 +202,8 @@ void main() {
 
         gl::UseProgram(sp);
 
-        let time = glfw.get_time() as f32;
-        let green: f32 = time.sin() / 2.0 + 0.5;
-        let uc_name = CString::new("uColor").unwrap();
-        let uc_location = gl::GetUniformLocation(sp, uc_name.as_c_str().as_ptr());
-        gl::Uniform4f(uc_location, 0.0, green, 0.0, 1.0);
-
         gl::BindVertexArray(va_triangle);
-        gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, 0 as *const c_void);
+        gl::DrawArrays(gl::TRIANGLES, 0, 3);
       }
 
       window.swap_buffers();
