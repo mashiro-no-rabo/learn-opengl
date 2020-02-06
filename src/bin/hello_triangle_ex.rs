@@ -119,14 +119,45 @@ void main() {
       sp
     };
 
-    // Vertex Data
-    let va_triangle = unsafe {
+    // Triangle 1
+    let t1 = unsafe {
       let mut vertices: Vec<f32> = vec![];
       // Triangle 1
       vertices.append(&mut vec![-0.5, 0.3, 0.0]);
       vertices.append(&mut vec![0.1, 0.3, 0.0]);
       vertices.append(&mut vec![-0.2, -0.3, 0.0]);
 
+      let mut vbo = 0;
+      gl::GenBuffers(1, &mut vbo);
+
+      let mut vao = 0;
+      gl::GenVertexArrays(1, &mut vao);
+
+      gl::BindVertexArray(vao);
+      gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
+      gl::BufferData(
+        gl::ARRAY_BUFFER,
+        (mem::size_of::<f32>() * vertices.len()) as isize,
+        vertices.as_ptr() as *const c_void,
+        gl::STATIC_DRAW,
+      );
+
+      gl::VertexAttribPointer(
+        0,
+        3,
+        gl::FLOAT,
+        gl::FALSE,
+        3 * mem::size_of::<f32>() as i32,
+        0 as *const c_void,
+      );
+      gl::EnableVertexAttribArray(0);
+
+      vao
+    };
+
+    // Triangle 2
+    let t2 = unsafe {
+      let mut vertices: Vec<f32> = vec![];
       // Triangle 2
       vertices.append(&mut vec![-0.1, -0.3, 0.0]);
       vertices.append(&mut vec![0.5, -0.3, 0.0]);
@@ -186,8 +217,12 @@ void main() {
         gl::Clear(gl::COLOR_BUFFER_BIT);
 
         gl::UseProgram(sp);
-        gl::BindVertexArray(va_triangle);
-        gl::DrawArrays(gl::TRIANGLES, 0, 6);
+
+        gl::BindVertexArray(t1);
+        gl::DrawArrays(gl::TRIANGLES, 0, 3);
+
+        gl::BindVertexArray(t2);
+        gl::DrawArrays(gl::TRIANGLES, 0, 3);
       }
 
       window.swap_buffers();
