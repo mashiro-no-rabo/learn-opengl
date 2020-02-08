@@ -3,7 +3,7 @@ use glfw::{Action, Key, OpenGlProfileHint, WindowHint, WindowMode};
 use std::ffi::c_void;
 use std::mem;
 
-use learn_opengl::{ShaderProgram, UniformValue};
+use learn_opengl::ShaderProgram;
 
 fn main() {
   let mut wireframe_mode = false;
@@ -35,6 +35,11 @@ fn main() {
       gl::GetIntegerv(gl::MAX_VERTEX_ATTRIBS, &mut max_vertex_attributes);
     }
     println!("Max Vertex Attributes: {}", max_vertex_attributes);
+
+    unsafe {
+      gl::Enable(gl::BLEND);
+      gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+    }
 
     // Vertex Shader
     let vs_code = "
@@ -138,8 +143,6 @@ void main() {
 
         sp.use_program();
         sp.set_uniform_value("xOffset", 0.3f32);
-
-        // TODO: this doesn't work
         sp.set_uniform_value("uAlpha", 0.2f32);
 
         gl::BindVertexArray(va_triangle);
