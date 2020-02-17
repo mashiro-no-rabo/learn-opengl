@@ -75,11 +75,13 @@ impl ShaderProgram {
         );
       }
 
-      gl::DeleteShader(vs);
-      gl::DeleteShader(fs);
-
       sp
     };
+
+    // Cleanup
+    gl::DeleteShader(vs);
+    gl::DeleteShader(fs);
+
     Self { id: sp }
   }
 
