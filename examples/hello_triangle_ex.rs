@@ -1,3 +1,5 @@
+// Exercises for the "Hello Triangle" chapter
+
 use glfw::Context;
 use glfw::{Action, Key, OpenGlProfileHint, WindowHint, WindowMode};
 use std::ffi::c_void;
