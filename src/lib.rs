@@ -25,7 +25,7 @@ impl ShaderProgram {
         gl::GetShaderInfoLog(vs_id, 512, null_mut(), log.as_mut_ptr());
         panic!(
           "Vertex Shader failed to compile:\n{}",
-          String::from_utf8(log.into_iter().map(|x| *x as u8).collect()).unwrap()
+          String::from_utf8(log.iter().map(|x| *x as u8).collect()).unwrap()
         );
       }
 
@@ -49,7 +49,7 @@ impl ShaderProgram {
         gl::GetShaderInfoLog(fs_id, 512, null_mut(), log.as_mut_ptr());
         panic!(
           "Fragment Shader failed to compile:\n{}",
-          String::from_utf8(log.into_iter().map(|x| *x as u8).collect()).unwrap()
+          String::from_utf8(log.iter().map(|x| *x as u8).collect()).unwrap()
         );
       }
 
@@ -71,7 +71,7 @@ impl ShaderProgram {
         gl::GetProgramInfoLog(sp, 512, null_mut(), log.as_mut_ptr());
         panic!(
           "Shader Program failed to link:\n{}",
-          String::from_utf8(log.into_iter().map(|x| *x as u8).collect()).unwrap()
+          String::from_utf8(log.iter().map(|x| *x as u8).collect()).unwrap()
         );
       }
 
