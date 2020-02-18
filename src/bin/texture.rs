@@ -61,10 +61,11 @@ in vec3 ourColor;
 in vec2 TexCoord;
 
 uniform sampler2D texture1;
+uniform sampler2D texture2;
 
 void main()
 {
-    FragColor = texture(texture1, TexCoord) * vec4(ourColor, 1.0);
+    FragColor = mix(texture(texture1, TexCoord), texture(texture2, TexCoord), 0.2);
 }";
 
     // Shader Program
@@ -156,7 +157,6 @@ void main()
         .into_rgb();
 
       let (width, height) = img.dimensions();
-      let img_data = img.into_raw();
 
       gl::TexImage2D(
         gl::TEXTURE_2D,
@@ -167,7 +167,39 @@ void main()
         0,
         gl::RGB,
         gl::UNSIGNED_BYTE,
-        img_data.as_ptr() as *const c_void,
+        img.into_raw().as_ptr() as *const c_void,
+      );
+      gl::GenerateMipmap(gl::TEXTURE_2D);
+
+      tex
+    };
+
+    let tex2 = unsafe {
+      let mut tex = 0;
+      gl::GenTextures(1, &mut tex);
+      gl::BindTexture(gl::TEXTURE_2D, tex);
+
+      gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::REPEAT as i32);
+      gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::REPEAT as i32);
+      gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
+      gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
+
+      let img = image::open("resources/textures/awesomeface.png")
+        .expect("failed to load texture image")
+        .into_rgba();
+
+      let (width, height) = img.dimensions();
+
+      gl::TexImage2D(
+        gl::TEXTURE_2D,
+        0,
+        gl::RGB as i32,
+        width as i32,
+        height as i32,
+        0,
+        gl::RGBA,
+        gl::UNSIGNED_BYTE,
+        img.into_raw().as_ptr() as *const c_void,
       );
       gl::GenerateMipmap(gl::TEXTURE_2D);
 
@@ -183,6 +215,7 @@ void main()
     unsafe {
       sp.use_program();
       sp.set_uniform_value("texture1", 0);
+      sp.set_uniform_value("texture2", 1);
     }
 
     // Loop
@@ -208,6 +241,8 @@ void main()
 
         gl::ActiveTexture(gl::TEXTURE0);
         gl::BindTexture(gl::TEXTURE_2D, tex);
+        gl::ActiveTexture(gl::TEXTURE1);
+        gl::BindTexture(gl::TEXTURE_2D, tex2);
 
         gl::BindVertexArray(vao);
         gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, 0 as *const c_void);
