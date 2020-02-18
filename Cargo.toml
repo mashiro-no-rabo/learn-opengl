@@ -8,4 +8,5 @@ edition = "2018"
 glfw = "0.35"
 gl = "0.14"
 gl_loader = "0.1"
+image = { version = "0.23", default-features = false, features = ["jpeg"] }
 # glsl = "4.0"
