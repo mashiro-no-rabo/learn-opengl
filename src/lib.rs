@@ -119,3 +119,9 @@ impl UniformValue for f32 {
     gl::Uniform1f(location, self);
   }
 }
+
+impl UniformValue for i32 {
+  unsafe fn gl_uniform(self, location: i32) {
+    gl::Uniform1i(location, self);
+  }
+}
