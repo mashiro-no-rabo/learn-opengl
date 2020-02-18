@@ -1,10 +1,10 @@
 use glfw::Context;
 use glfw::{Action, Key, OpenGlProfileHint, WindowHint, WindowMode};
-use nalgebra_glm::{rotate_z, scale, vec3, Mat4};
+use nalgebra_glm::{rotate_z, translate, vec3, Mat4};
 use std::ffi::c_void;
 use std::mem;
 
-use learn_opengl::{deg_to_rad, ShaderProgram};
+use learn_opengl::ShaderProgram;
 
 fn main() {
   let mut wireframe_mode = false;
@@ -213,8 +213,9 @@ void main()
     }
 
     // Transformations
-    let trans = scale(&rotate_z(&Mat4::identity(), deg_to_rad(90.0)), &vec3(0.5, 0.5, 0.5));
+    let base_trans = translate(&Mat4::identity(), &vec3(0.5, -0.5, 0.0));
 
+    // Interaction
     let mut mix_value = 0.2f32;
 
     // Loop
@@ -241,6 +242,7 @@ void main()
         sp.use_program();
         sp.set_uniform_value("mixValue", mix_value);
 
+        let trans = rotate_z(&base_trans, glfw.get_time() as f32);
         sp.set_uniform_value("transform", trans);
 
         gl::ActiveTexture(gl::TEXTURE0);
