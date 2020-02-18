@@ -1,6 +1,6 @@
 use glfw::Context;
 use glfw::{Action, Key, OpenGlProfileHint, WindowHint, WindowMode};
-use nalgebra_glm::{rotate_z, translate, vec3, Mat4};
+use nalgebra_glm::{rotate_z, scale, translate, vec3, Mat4};
 use std::ffi::c_void;
 use std::mem;
 
@@ -214,6 +214,7 @@ void main()
 
     // Transformations
     let base_trans = translate(&Mat4::identity(), &vec3(0.5, -0.5, 0.0));
+    let base_trans2 = translate(&Mat4::identity(), &vec3(-0.5, 0.5, 0.0));
 
     // Interaction
     let mut mix_value = 0.2f32;
@@ -251,6 +252,11 @@ void main()
         gl::BindTexture(gl::TEXTURE_2D, tex2);
 
         gl::BindVertexArray(vao);
+        gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, 0 as *const c_void);
+
+        let sc = glfw.get_time().sin() as f32;
+        let trans2 = scale(&base_trans2, &vec3(sc, sc, 1.0));
+        sp.set_uniform_value("transform", trans2);
         gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, 0 as *const c_void);
       }
 
