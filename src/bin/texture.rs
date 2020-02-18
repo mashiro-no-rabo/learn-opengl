@@ -112,7 +112,7 @@ void main()
         gl::FLOAT,
         gl::FALSE,
         8 * mem::size_of::<f32>() as i32,
-        3 as *const c_void,
+        (3 * mem::size_of::<f32>()) as *const c_void,
       );
       gl::EnableVertexAttribArray(1);
 
@@ -122,7 +122,7 @@ void main()
         gl::FLOAT,
         gl::FALSE,
         8 * mem::size_of::<f32>() as i32,
-        6 as *const c_void,
+        (6 * mem::size_of::<f32>()) as *const c_void,
       );
       gl::EnableVertexAttribArray(2);
 
