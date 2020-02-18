@@ -30,6 +30,7 @@ fn main() {
     window.set_framebuffer_size_polling(true);
     window.set_key_polling(true);
 
+    // Bind textures
     unsafe {
       gl::Enable(gl::BLEND);
       gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
