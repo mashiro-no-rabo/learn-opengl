@@ -1,6 +1,11 @@
+use nalgebra_glm::{value_ptr, Mat4};
 use std::ffi::CString;
 use std::fs;
 use std::ptr::{null, null_mut};
+
+pub fn deg_to_rad(degree: f32) -> f32 {
+  degree * std::f32::consts::PI / 180.0
+}
 
 pub struct ShaderProgram {
   id: u32,
@@ -123,5 +128,11 @@ impl UniformValue for f32 {
 impl UniformValue for i32 {
   unsafe fn gl_uniform(self, location: i32) {
     gl::Uniform1i(location, self);
+  }
+}
+
+impl UniformValue for Mat4 {
+  unsafe fn gl_uniform(self, location: i32) {
+    gl::UniformMatrix4fv(location, 1, gl::FALSE, value_ptr(&self).as_ptr());
   }
 }
