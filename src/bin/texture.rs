@@ -63,9 +63,11 @@ in vec2 TexCoord;
 uniform sampler2D texture1;
 uniform sampler2D texture2;
 
+uniform float mixValue;
+
 void main()
 {
-    FragColor = mix(texture(texture1, TexCoord), texture(texture2, TexCoord), 0.2);
+    FragColor = mix(texture(texture1, TexCoord), texture(texture2, TexCoord), mixValue);
 }";
 
     // Shader Program
@@ -75,10 +77,10 @@ void main()
     let vao = unsafe {
       let mut vertices: Vec<f32> = vec![];
       // position (xyz), color (rgb), texture coord (xy)
-      vertices.append(&mut vec![0.5, 0.5, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0]);
-      vertices.append(&mut vec![0.5, -0.5, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0]);
+      vertices.append(&mut vec![0.5, 0.5, 0.0, 1.0, 0.0, 0.0, 2.0, 2.0]);
+      vertices.append(&mut vec![0.5, -0.5, 0.0, 0.0, 1.0, 0.0, 2.0, 0.0]);
       vertices.append(&mut vec![-0.5, -0.5, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0]);
-      vertices.append(&mut vec![-0.5, 0.5, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0]);
+      vertices.append(&mut vec![-0.5, 0.5, 0.0, 1.0, 1.0, 0.0, 0.0, 2.0]);
 
       let indices = vec![0, 1, 3, 1, 2, 3];
 
@@ -220,6 +222,8 @@ void main()
       sp.set_uniform_value("texture2", 1);
     }
 
+    let mut mix_value = 0.2f32;
+
     // Loop
     while !window.should_close() {
       glfw.poll_events();
@@ -231,6 +235,8 @@ void main()
             gl::Viewport(0, 0, width, height);
           },
           glfw::WindowEvent::Key(Key::Escape, _, Action::Press, _) => window.set_should_close(true),
+          glfw::WindowEvent::Key(Key::Up, _, Action::Press, _) => mix_value = (mix_value + 0.1).min(1.0),
+          glfw::WindowEvent::Key(Key::Down, _, Action::Press, _) => mix_value = (mix_value - 0.1).max(0.0),
           _ => {}
         }
       }
@@ -240,6 +246,7 @@ void main()
         gl::Clear(gl::COLOR_BUFFER_BIT);
 
         sp.use_program();
+        sp.set_uniform_value("mixValue", mix_value);
 
         gl::ActiveTexture(gl::TEXTURE0);
         gl::BindTexture(gl::TEXTURE_2D, tex);
