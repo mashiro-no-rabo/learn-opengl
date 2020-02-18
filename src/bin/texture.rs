@@ -154,6 +154,7 @@ void main()
 
       let img = image::open("resources/textures/container.jpg")
         .expect("failed to load texture image")
+        .flipv()
         .into_rgb();
 
       let (width, height) = img.dimensions();
@@ -186,6 +187,7 @@ void main()
 
       let img = image::open("resources/textures/awesomeface.png")
         .expect("failed to load texture image")
+        .flipv()
         .into_rgba();
 
       let (width, height) = img.dimensions();
