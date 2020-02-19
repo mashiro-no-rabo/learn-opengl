@@ -4,7 +4,7 @@ use nalgebra_glm::{rotate_z, scale, translate, vec3, Mat4};
 use std::ffi::c_void;
 use std::mem;
 
-use learn_opengl::ShaderProgram;
+use strugl::{Matrix4, ShaderProgram};
 
 fn main() {
   let mut wireframe_mode = false;
@@ -243,7 +243,7 @@ void main()
         sp.use_program();
         sp.set_uniform_value("mixValue", mix_value);
 
-        let trans = rotate_z(&base_trans, glfw.get_time() as f32);
+        let trans: Matrix4 = rotate_z(&base_trans, glfw.get_time() as f32).into();
         sp.set_uniform_value("transform", trans);
 
         gl::ActiveTexture(gl::TEXTURE0);
@@ -255,7 +255,7 @@ void main()
         gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, 0 as *const c_void);
 
         let sc = glfw.get_time().sin() as f32;
-        let trans2 = scale(&base_trans2, &vec3(sc, sc, 1.0));
+        let trans2: Matrix4 = scale(&base_trans2, &vec3(sc, sc, 1.0)).into();
         sp.set_uniform_value("transform", trans2);
         gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, 0 as *const c_void);
       }
