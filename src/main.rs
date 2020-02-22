@@ -29,6 +29,7 @@ fn main() {
     window.set_key_polling(true);
     window.set_cursor_pos_polling(true);
     window.set_cursor_mode(glfw::CursorMode::Disabled);
+    window.set_scroll_polling(true);
 
     gl_loader::init_gl();
     gl::load_with(|symbol| gl_loader::get_proc_address(symbol) as *const _);
@@ -243,7 +244,6 @@ void main()
 
     // Transformations
     let base_model = glm::rotate_x(&glm::Mat4::identity(), deg_to_rad(-55.0));
-    let projection: Matrix4 = glm::perspective_fov(deg_to_rad(45.0), 800.0, 600.0, 0.1, 100.0).into();
 
     // Camera
     let mut camera_pos = glm::vec3(0.0, 0.0, 3.0);
@@ -260,6 +260,8 @@ void main()
     let mouse_sensitivity = 0.05;
     let mut pitch_deg = 0.0f32;
     let mut yaw_deg = -90.0f32;
+
+    let mut fov = 45.0;
 
     // Loop
     while !window.should_close() {
@@ -303,6 +305,9 @@ void main()
             }
             last_mouse = Some((x, y));
           }
+          Scroll(_x, y) => {
+            fov = (fov - y as f32).min(45.0).max(1.0);
+          }
           _ => {}
         }
       }
@@ -322,6 +327,7 @@ void main()
         .into();
 
         let view: Matrix4 = glm::look_at(&camera_pos, &(camera_pos + camera_front), &camera_up).into();
+        let projection: Matrix4 = glm::perspective_fov(deg_to_rad(fov), 800.0, 600.0, 0.1, 100.0).into();
 
         sp.set_uniform_value("model", model);
         sp.set_uniform_value("view", view);
