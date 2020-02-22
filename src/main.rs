@@ -34,6 +34,8 @@ fn main() {
     unsafe {
       gl::Enable(gl::BLEND);
       gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+
+      gl::Enable(gl::DEPTH_TEST);
     }
 
     // Vertex Shader
@@ -258,7 +260,7 @@ void main()
 
       unsafe {
         gl::ClearColor(0.2, 0.3, 0.3, 1.0);
-        gl::Clear(gl::COLOR_BUFFER_BIT);
+        gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 
         sp.use_program();
         sp.set_uniform_value("mixValue", mix_value);
