@@ -20,6 +20,8 @@ fn main() {
 
   if let Some((mut window, events)) = glfw.create_window(800, 600, "Rust-LearnOpenGL", WindowMode::Windowed) {
     window.make_current();
+    window.set_framebuffer_size_polling(true);
+    window.set_key_polling(true);
 
     gl_loader::init_gl();
     gl::load_with(|symbol| gl_loader::get_proc_address(symbol) as *const _);
@@ -27,9 +29,6 @@ fn main() {
     unsafe {
       gl::Viewport(0, 0, 800, 600);
     }
-
-    window.set_framebuffer_size_polling(true);
-    window.set_key_polling(true);
 
     unsafe {
       gl::Enable(gl::BLEND);
@@ -237,14 +236,26 @@ void main()
 
     // Transformations
     let base_model = glm::rotate_x(&glm::Mat4::identity(), deg_to_rad(-55.0));
-    let view: Matrix4 = glm::translate(&glm::Mat4::identity(), &glm::vec3(0.0, 0.0, -3.0)).into();
     let projection: Matrix4 = glm::perspective_fov(deg_to_rad(45.0), 800.0, 600.0, 0.1, 100.0).into();
+
+    // Camera
+    let mut camera_pos = glm::vec3(0.0, 0.0, 3.0);
+    let camera_front = glm::vec3(0.0, 0.0, -1.0);
+    let camera_up = glm::vec3(0.0, 1.0, 0.0);
 
     // Interaction
     let mut mix_value = 0.2f32;
+    let camera_speed = 2.5f32;
+    let mut last_time = 0.0;
 
     // Loop
     while !window.should_close() {
+      let current = glfw.get_time();
+      let delta_time = (current - last_time) as f32;
+      last_time = current;
+
+      let camera_movement = camera_speed * delta_time;
+
       glfw.poll_events();
       for (_, event) in glfw::flush_messages(&events) {
         match event {
@@ -254,6 +265,14 @@ void main()
           glfw::WindowEvent::Key(Key::Escape, _, Action::Press, _) => window.set_should_close(true),
           glfw::WindowEvent::Key(Key::Up, _, Action::Press, _) => mix_value = (mix_value + 0.1).min(1.0),
           glfw::WindowEvent::Key(Key::Down, _, Action::Press, _) => mix_value = (mix_value - 0.1).max(0.0),
+          glfw::WindowEvent::Key(Key::W, _, Action::Repeat, _) => camera_pos += camera_movement * camera_front,
+          glfw::WindowEvent::Key(Key::S, _, Action::Repeat, _) => camera_pos -= camera_movement * camera_front,
+          glfw::WindowEvent::Key(Key::A, _, Action::Repeat, _) => {
+            camera_pos -= camera_movement * glm::normalize(&glm::cross(&camera_front, &camera_up))
+          }
+          glfw::WindowEvent::Key(Key::D, _, Action::Repeat, _) => {
+            camera_pos += camera_movement * glm::normalize(&glm::cross(&camera_front, &camera_up))
+          }
           _ => {}
         }
       }
@@ -271,6 +290,8 @@ void main()
           &glm::vec3(0.5, 1.0, 0.0),
         )
         .into();
+
+        let view: Matrix4 = glm::look_at(&camera_pos, &(camera_pos + camera_front), &camera_up).into();
 
         sp.set_uniform_value("model", model);
         sp.set_uniform_value("view", view);
