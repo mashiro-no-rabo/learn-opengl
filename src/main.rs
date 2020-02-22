@@ -78,12 +78,42 @@ void main()
     let vao = unsafe {
       let mut vertices: Vec<f32> = vec![];
       // position (xyz), texture coord (xy)
-      vertices.append(&mut vec![0.5, 0.5, 0.0, 2.0, 2.0]);
-      vertices.append(&mut vec![0.5, -0.5, 0.0, 2.0, 0.0]);
-      vertices.append(&mut vec![-0.5, -0.5, 0.0, 0.0, 0.0]);
-      vertices.append(&mut vec![-0.5, 0.5, 0.0, 0.0, 2.0]);
-
-      let indices = vec![0, 1, 3, 1, 2, 3];
+      vertices.append(&mut vec![-0.5, -0.5, -0.5, 0.0, 0.0]);
+      vertices.append(&mut vec![0.5, -0.5, -0.5, 1.0, 0.0]);
+      vertices.append(&mut vec![0.5, 0.5, -0.5, 1.0, 1.0]);
+      vertices.append(&mut vec![0.5, 0.5, -0.5, 1.0, 1.0]);
+      vertices.append(&mut vec![-0.5, 0.5, -0.5, 0.0, 1.0]);
+      vertices.append(&mut vec![-0.5, -0.5, -0.5, 0.0, 0.0]);
+      vertices.append(&mut vec![-0.5, -0.5, 0.5, 0.0, 0.0]);
+      vertices.append(&mut vec![0.5, -0.5, 0.5, 1.0, 0.0]);
+      vertices.append(&mut vec![0.5, 0.5, 0.5, 1.0, 1.0]);
+      vertices.append(&mut vec![0.5, 0.5, 0.5, 1.0, 1.0]);
+      vertices.append(&mut vec![-0.5, 0.5, 0.5, 0.0, 1.0]);
+      vertices.append(&mut vec![-0.5, -0.5, 0.5, 0.0, 0.0]);
+      vertices.append(&mut vec![-0.5, 0.5, 0.5, 1.0, 0.0]);
+      vertices.append(&mut vec![-0.5, 0.5, -0.5, 1.0, 1.0]);
+      vertices.append(&mut vec![-0.5, -0.5, -0.5, 0.0, 1.0]);
+      vertices.append(&mut vec![-0.5, -0.5, -0.5, 0.0, 1.0]);
+      vertices.append(&mut vec![-0.5, -0.5, 0.5, 0.0, 0.0]);
+      vertices.append(&mut vec![-0.5, 0.5, 0.5, 1.0, 0.0]);
+      vertices.append(&mut vec![0.5, 0.5, 0.5, 1.0, 0.0]);
+      vertices.append(&mut vec![0.5, 0.5, -0.5, 1.0, 1.0]);
+      vertices.append(&mut vec![0.5, -0.5, -0.5, 0.0, 1.0]);
+      vertices.append(&mut vec![0.5, -0.5, -0.5, 0.0, 1.0]);
+      vertices.append(&mut vec![0.5, -0.5, 0.5, 0.0, 0.0]);
+      vertices.append(&mut vec![0.5, 0.5, 0.5, 1.0, 0.0]);
+      vertices.append(&mut vec![-0.5, -0.5, -0.5, 0.0, 1.0]);
+      vertices.append(&mut vec![0.5, -0.5, -0.5, 1.0, 1.0]);
+      vertices.append(&mut vec![0.5, -0.5, 0.5, 1.0, 0.0]);
+      vertices.append(&mut vec![0.5, -0.5, 0.5, 1.0, 0.0]);
+      vertices.append(&mut vec![-0.5, -0.5, 0.5, 0.0, 0.0]);
+      vertices.append(&mut vec![-0.5, -0.5, -0.5, 0.0, 1.0]);
+      vertices.append(&mut vec![-0.5, 0.5, -0.5, 0.0, 1.0]);
+      vertices.append(&mut vec![0.5, 0.5, -0.5, 1.0, 1.0]);
+      vertices.append(&mut vec![0.5, 0.5, 0.5, 1.0, 0.0]);
+      vertices.append(&mut vec![0.5, 0.5, 0.5, 1.0, 0.0]);
+      vertices.append(&mut vec![-0.5, 0.5, 0.5, 0.0, 0.0]);
+      vertices.append(&mut vec![-0.5, 0.5, -0.5, 0.0, 1.0]);
 
       let mut vbo = 0;
       gl::GenBuffers(1, &mut vbo);
@@ -119,17 +149,6 @@ void main()
         (3 * mem::size_of::<f32>()) as *const c_void,
       );
       gl::EnableVertexAttribArray(1);
-
-      let mut ebo = 0;
-      gl::GenBuffers(1, &mut ebo);
-
-      gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ebo);
-      gl::BufferData(
-        gl::ELEMENT_ARRAY_BUFFER,
-        (mem::size_of::<f32>() * vertices.len()) as isize,
-        indices.as_ptr() as *const c_void,
-        gl::STATIC_DRAW,
-      );
 
       vao
     };
@@ -215,7 +234,7 @@ void main()
     }
 
     // Transformations
-    let model: Matrix4 = glm::rotate_x(&glm::Mat4::identity(), deg_to_rad(-55.0)).into();
+    let base_model = glm::rotate_x(&glm::Mat4::identity(), deg_to_rad(-55.0));
     let view: Matrix4 = glm::translate(&glm::Mat4::identity(), &glm::vec3(0.0, 0.0, -3.0)).into();
     let projection: Matrix4 = glm::perspective_fov(deg_to_rad(45.0), 800.0, 600.0, 0.1, 100.0).into();
 
@@ -244,6 +263,13 @@ void main()
         sp.use_program();
         sp.set_uniform_value("mixValue", mix_value);
 
+        let model: Matrix4 = glm::rotate(
+          &base_model,
+          glfw.get_time() as f32 * deg_to_rad(50.0),
+          &glm::vec3(0.5, 1.0, 0.0),
+        )
+        .into();
+
         sp.set_uniform_value("model", model);
         sp.set_uniform_value("view", view);
         sp.set_uniform_value("projection", projection);
@@ -254,7 +280,7 @@ void main()
         gl::BindTexture(gl::TEXTURE_2D, tex2);
 
         gl::BindVertexArray(vao);
-        gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, 0 as *const c_void);
+        gl::DrawArrays(gl::TRIANGLES, 0, 36);
       }
 
       window.swap_buffers();
