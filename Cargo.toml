@@ -5,11 +5,11 @@ authors = ["LOU Xun <aquarhead@ela.build>"]
 edition = "2018"
 
 [dependencies]
-glfw = "0.35"
+glfw = "0.39"
 gl = "0.14"
 gl_loader = "0.1"
-nalgebra = { version = "0.19", features = ["mint"] }
-nalgebra-glm = "0.5"
+nalgebra = { version = "0.21", features = ["mint"] }
+nalgebra-glm = "0.7"
 # glsl = "4.0"
 
 [dependencies.image]
